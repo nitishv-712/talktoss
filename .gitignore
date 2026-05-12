@@ -1,0 +1,69 @@
+# ─── Flutter / Dart ───────────────────────────────────────────────────────────
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ / Android Studio
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Flutter build & tooling
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+
+# Symbolication / obfuscation
+app.*.symbols
+app.*.map.json
+
+# Android build artifacts
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/.gradle
+/android/captures
+/android/local.properties
+
+# iOS build artifacts
+/ios/Pods/
+/ios/.symlinks/
+/ios/Flutter/flutter_export_environment.sh
+
+# ─── Flutter Environment ──────────────────────────────────────────────────────
+assets/.env
+
+# ─── Backend ──────────────────────────────────────────────────────────────────
+backend/node_modules/
+backend/.env
+backend/*.log
+backend/logs/
+
+# ─── General secrets ──────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+
+# ─── VS Code ──────────────────────────────────────────────────────────────────
+.vscode/
