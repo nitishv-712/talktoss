@@ -3,15 +3,15 @@ import '../services/socket_service.dart';
 import '../services/webrtc_service.dart';
 
 class CallScreen extends StatefulWidget {
+  final String peerUid;
   final String peerSocketId;
-  final String? callId;
   final bool isOffer;
   final SocketService socketService;
 
   const CallScreen({
     super.key,
+    required this.peerUid,
     required this.peerSocketId,
-    required this.callId,
     required this.isOffer,
     required this.socketService,
   });
@@ -47,7 +47,7 @@ class _CallScreenState extends State<CallScreen> {
   }
 
   void _endCall({bool notify = true}) {
-    if (notify) widget.socketService.endCall(widget.peerSocketId, widget.callId);
+    if (notify) widget.socketService.endCall(widget.peerSocketId);
     _webrtc.dispose();
     if (mounted) Navigator.pop(context);
   }
@@ -67,10 +67,8 @@ class _CallScreenState extends State<CallScreen> {
         ),
       ),
     );
-    if (reason != null) {
-      // peerId (userId) is not available here via socketId — pass it from match_found if needed
-      // For now we report using the callId context
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User reported')));
+    if (reason != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('User reported')));
     }
   }
 
@@ -100,11 +98,14 @@ class _CallScreenState extends State<CallScreen> {
                 ],
               ),
             ),
-            const Column(
+            Column(
               children: [
-                Icon(Icons.person, size: 100, color: Colors.white),
-                SizedBox(height: 16),
-                Text('Connected', style: TextStyle(color: Colors.white, fontSize: 24)),
+                const Icon(Icons.person, size: 100, color: Colors.white),
+                const SizedBox(height: 16),
+                const Text('Connected', style: TextStyle(color: Colors.white, fontSize: 24)),
+                const SizedBox(height: 8),
+                Text('ID: ${widget.peerUid}',
+                    style: const TextStyle(color: Colors.white54, fontSize: 13)),
               ],
             ),
             Padding(

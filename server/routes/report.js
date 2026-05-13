@@ -22,6 +22,7 @@ router.post('/user', authMiddleware, async (req, res) => {
 
     res.json({ message: 'User reported successfully' });
   } catch (err) {
+    console.error('[/report/user]', err);
     res.status(500).json({ error: err.message });
   }
 });

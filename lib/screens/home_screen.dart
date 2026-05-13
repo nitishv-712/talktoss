@@ -31,8 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
             context,
             MaterialPageRoute(
               builder: (_) => CallScreen(
+                peerUid: data['peerUid'],
                 peerSocketId: data['peerSocketId'],
-                callId: data['callId'],
                 isOffer: data['isOffer'] ?? true,
                 socketService: _socketService,
               ),

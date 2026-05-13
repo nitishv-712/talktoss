@@ -12,8 +12,6 @@ class SocketService {
     socket.connect();
   }
 
-  void joinQueue(String userId) => socket.emit('join_queue', {'userId': userId});
-
   void sendOffer(String targetSocketId, dynamic sdp) =>
       socket.emit('offer', {'targetSocketId': targetSocketId, 'sdp': sdp});
 
@@ -23,8 +21,8 @@ class SocketService {
   void sendIceCandidate(String targetSocketId, dynamic candidate) =>
       socket.emit('ice_candidate', {'targetSocketId': targetSocketId, 'candidate': candidate});
 
-  void endCall(String targetSocketId, String? callId) => 
-      socket.emit('call_end', {'targetSocketId': targetSocketId, 'callId': callId});
+  void endCall(String targetSocketId) =>
+      socket.emit('call_end', {'targetSocketId': targetSocketId});
 
   void on(String event, Function(dynamic) handler) => socket.on(event, handler);
 

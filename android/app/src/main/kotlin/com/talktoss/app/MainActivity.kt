@@ -1,4 +1,4 @@
-package com.example.talktoss
+package com.talktoss.app
 
 import io.flutter.embedding.android.FlutterActivity
 

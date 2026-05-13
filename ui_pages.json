@@ -1,0 +1,68 @@
+{
+  "pages": [
+    {
+      "id": "login_screen",
+      "title": "Login Screen",
+      "description": "OTP-based authentication entry point",
+      "components": [
+        "phone number input field",
+        "send OTP button",
+        "OTP input field (6 digits)",
+        "verify OTP button",
+        "loading indicator"
+      ],
+      "navigation": {
+        "on_success": "home_screen"
+      }
+    },
+    {
+      "id": "home_screen",
+      "title": "Home Screen",
+      "description": "Main screen after login with matchmaking controls",
+      "components": [
+        "user greeting / profile info",
+        "find a match button",
+        "waiting/queue status indicator",
+        "cancel matchmaking button"
+      ],
+      "navigation": {
+        "on_match_found": "call_screen",
+        "on_logout": "login_screen"
+      }
+    },
+    {
+      "id": "call_screen",
+      "title": "Call Screen",
+      "description": "Active voice call UI with WebRTC controls",
+      "components": [
+        "matched user name/avatar",
+        "call duration timer",
+        "mute / unmute toggle button",
+        "speaker toggle button",
+        "end call button",
+        "report user button",
+        "call status indicator (connecting, connected, disconnected)"
+      ],
+      "navigation": {
+        "on_call_end": "home_screen",
+        "on_report": "report_dialog"
+      }
+    },
+    {
+      "id": "report_dialog",
+      "title": "Report Dialog",
+      "description": "Modal/bottom sheet to report or block a user",
+      "type": "dialog",
+      "components": [
+        "reason selection list (spam, inappropriate, harassment, other)",
+        "optional text input for details",
+        "submit report button",
+        "cancel button"
+      ],
+      "navigation": {
+        "on_submit": "call_screen",
+        "on_cancel": "call_screen"
+      }
+    }
+  ]
+}
