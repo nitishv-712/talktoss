@@ -290,7 +290,7 @@ class _CallScreenState extends State<CallScreen> with TickerProviderStateMixin {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: List.generate(heights.length, (i) => AnimatedBuilder(
           animation: _waveController,
-          builder: (_, __) {
+          builder: (_, x) {
             final offset = sin((_waveController.value + delays[i]) * pi);
             final h = heights[i] * (0.4 + 0.6 * ((offset + 1) / 2));
             return Container(

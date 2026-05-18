@@ -189,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               AnimatedBuilder(
                 animation: _ringAnim,
-                builder: (_, __) => Container(
+                builder: (_, a) => Container(
                   width: 280 * _ringAnim.value, height: 280 * _ringAnim.value,
                   decoration: BoxDecoration(shape: BoxShape.circle,
                       border: Border.all(color: cs.secondary.withValues(alpha: 0.1), width: 1)),
@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
               AnimatedBuilder(
                 animation: _ringAnim,
-                builder: (_, __) => Container(
+                builder: (_, b) => Container(
                   width: 240 * _ringAnim.value, height: 240 * _ringAnim.value,
                   decoration: BoxDecoration(shape: BoxShape.circle,
                       border: Border.all(color: cs.primary.withValues(alpha: 0.2), width: 1)),
