@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
 const User = require('./models/User');
 
@@ -25,13 +26,46 @@ app.use('/report', require('./routes/report'));
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
+// ─── TURN Credentials ─────────────────────────────────────────────────────────
+app.get('/turn-credentials', (req, res) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+
+  const ttl = 24 * 3600; // 24 hours
+  const timestamp = Math.floor(Date.now() / 1000) + ttl;
+  const username = `${timestamp}:talktoss`;
+  const credential = crypto
+    .createHmac('sha1', process.env.TURN_SECRET)
+    .update(username)
+    .digest('base64');
+
+  res.json({
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      {
+        urls: [
+          `turn:${process.env.TURN_HOST}:80`,
+          `turn:${process.env.TURN_HOST}:443`,
+          `turns:${process.env.TURN_HOST}:443`,
+        ],
+        username,
+        credential,
+      },
+    ],
+  });
+});
+
 // ─── MongoDB ──────────────────────────────────────────────────────────────────
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB error:', err));
 
 // ─── Matchmaking Queue ────────────────────────────────────────────────────────
-// { userId, uid, socketId }
 const waitingQueue = [];
 
 function removeFromQueue(socketId) {

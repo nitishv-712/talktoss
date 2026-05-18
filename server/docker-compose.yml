@@ -1,0 +1,30 @@
+services:
+  backend:
+    build: .
+    container_name: talktoss-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - coturn
+    networks:
+      - talktoss
+
+  coturn:
+    image: coturn/coturn:latest
+    container_name: talktoss-coturn
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./coturn.conf:/etc/coturn/turnserver.conf:ro
+      - coturn-logs:/var/log/coturn
+    command: -c /etc/coturn/turnserver.conf
+
+volumes:
+  coturn-logs:
+
+networks:
+  talktoss:
+    driver: bridge

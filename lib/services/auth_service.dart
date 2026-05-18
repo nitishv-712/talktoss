@@ -54,11 +54,6 @@ class AuthService {
     return prefs.getString('token');
   }
 
-  static Future<String?> getUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('userId');
-  }
-
   static Future<String?> getUserUid() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('userUid');

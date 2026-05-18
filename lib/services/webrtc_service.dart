@@ -1,5 +1,8 @@
+import 'dart:convert';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
+import 'package:http/http.dart' as http;
 import 'socket_service.dart';
+import 'auth_service.dart';
 import '../config/env.dart';
 
 class WebRTCService {
@@ -7,30 +10,42 @@ class WebRTCService {
   MediaStream? _localStream;
   final SocketService socketService;
   final String peerSocketId;
+  final List<RTCIceCandidate> _pendingCandidates = [];
 
   WebRTCService({required this.socketService, required this.peerSocketId});
 
-  Map<String, dynamic> get _iceConfig => {
-    'iceServers': [
-      {'urls': 'stun:stun.l.google.com:19302'},
-      {
-        'urls': Env.turnUrl,
-        'username': Env.turnUsername,
-        'credential': Env.turnCredential,
-      },
-    ]
-  };
+  Future<Map<String, dynamic>> _fetchIceConfig() async {
+    final token = await AuthService.getToken();
+    final res = await http.get(
+      Uri.parse('${Env.serverUrl}/turn-credentials'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (res.statusCode == 200) return jsonDecode(res.body);
+    // fallback to STUN only
+    return {
+      'iceServers': [
+        {'urls': 'stun:stun.l.google.com:19302'},
+      ]
+    };
+  }
 
   Future<void> init({required bool isOffer}) async {
+    final iceConfig = await _fetchIceConfig();
     _localStream = await mediaDevices.getUserMedia({'audio': true, 'video': false});
-    _peerConnection = await createPeerConnection(_iceConfig);
+    _peerConnection = await createPeerConnection(iceConfig);
 
-    _localStream!.getTracks().forEach((track) {
+    for (final track in _localStream!.getTracks()) {
       _peerConnection!.addTrack(track, _localStream!);
-    });
+    }
 
     _peerConnection!.onIceCandidate = (candidate) {
-      socketService.sendIceCandidate(peerSocketId, candidate.toMap());
+      if (candidate.candidate != null) {
+        socketService.sendIceCandidate(peerSocketId, candidate.toMap());
+      }
+    };
+
+    _peerConnection!.onIceConnectionState = (state) {
+      print('[WebRTC] ICE: $state');
     };
 
     if (isOffer) {
@@ -43,6 +58,7 @@ class WebRTCService {
   Future<void> handleOffer(dynamic sdp) async {
     await _peerConnection!.setRemoteDescription(
         RTCSessionDescription(sdp['sdp'], sdp['type']));
+    await _flushPendingCandidates();
     final answer = await _peerConnection!.createAnswer();
     await _peerConnection!.setLocalDescription(answer);
     socketService.sendAnswer(peerSocketId, answer.toMap());
@@ -51,11 +67,25 @@ class WebRTCService {
   Future<void> handleAnswer(dynamic sdp) async {
     await _peerConnection!.setRemoteDescription(
         RTCSessionDescription(sdp['sdp'], sdp['type']));
+    await _flushPendingCandidates();
   }
 
   Future<void> addIceCandidate(dynamic candidate) async {
-    await _peerConnection!.addCandidate(RTCIceCandidate(
-        candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex']));
+    final c = RTCIceCandidate(
+        candidate['candidate'], candidate['sdpMid'], candidate['sdpMLineIndex']);
+    final remoteDesc = await _peerConnection!.getRemoteDescription();
+    if (remoteDesc == null) {
+      _pendingCandidates.add(c);
+    } else {
+      await _peerConnection!.addCandidate(c);
+    }
+  }
+
+  Future<void> _flushPendingCandidates() async {
+    for (final c in _pendingCandidates) {
+      await _peerConnection!.addCandidate(c);
+    }
+    _pendingCandidates.clear();
   }
 
   void toggleMute(bool mute) {
@@ -63,6 +93,7 @@ class WebRTCService {
   }
 
   Future<void> dispose() async {
+    _pendingCandidates.clear();
     await _localStream?.dispose();
     await _peerConnection?.close();
     _peerConnection = null;
