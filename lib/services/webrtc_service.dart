@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:http/http.dart' as http;
 import 'socket_service.dart';
@@ -45,7 +46,7 @@ class WebRTCService {
     };
 
     _peerConnection!.onIceConnectionState = (state) {
-      print('[WebRTC] ICE: $state');
+      debugPrint('[WebRTC] ICE: $state');
     };
 
     if (isOffer) {

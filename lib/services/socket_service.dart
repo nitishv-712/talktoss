@@ -1,11 +1,11 @@
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../config/env.dart';
 
 class SocketService {
-  late IO.Socket socket;
+  late io.Socket socket;
 
   void connect(String token) {
-    socket = IO.io(Env.serverUrl, IO.OptionBuilder()
+    socket = io.io(Env.serverUrl, io.OptionBuilder()
         .setTransports(['websocket'])
         .setExtraHeaders({'Authorization': 'Bearer $token'})
         .build());

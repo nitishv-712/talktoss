@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
-import 'screens/home_screen.dart';
+import 'screens/main_shell.dart';
+import 'theme/theme_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
@@ -11,7 +14,12 @@ void main() async {
   await dotenv.load(fileName: 'assets/.env');
   await Firebase.initializeApp();
   await Permission.microphone.request();
-  runApp(const TalkTossApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const TalkTossApp(),
+    ),
+  );
 }
 
 class TalkTossApp extends StatelessWidget {
@@ -19,10 +27,11 @@ class TalkTossApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
     return MaterialApp(
       title: 'TalkToss',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple)),
+      theme: themeProvider.theme,
       home: const _AuthGate(),
     );
   }
@@ -33,13 +42,13 @@ class _AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<String?>(
-      future: AuthService.getToken(),
+    return StreamBuilder<User?>(
+      stream: AuthService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(body: Center(child: CircularProgressIndicator()));
         }
-        return snapshot.data != null ? const HomeScreen() : const LoginScreen();
+        return snapshot.data != null ? const MainShell() : const LoginScreen();
       },
     );
   }
