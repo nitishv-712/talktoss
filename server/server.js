@@ -61,7 +61,7 @@ app.get('/turn-credentials', (req, res) => {
 });
 
 // ─── MongoDB ──────────────────────────────────────────────────────────────────
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGO_URI, { dbName: 'talktoss' })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB error:', err));
 
