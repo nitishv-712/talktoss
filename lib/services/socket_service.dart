@@ -2,14 +2,18 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../config/env.dart';
 
 class SocketService {
-  late io.Socket socket;
+  io.Socket? _socket;
+
+  io.Socket get socket => _socket!;
+
+  bool get isConnected => _socket != null && (_socket!.connected);
 
   void connect(String token) {
-    socket = io.io(Env.serverUrl, io.OptionBuilder()
+    _socket = io.io(Env.serverUrl, io.OptionBuilder()
         .setTransports(['websocket'])
         .setExtraHeaders({'Authorization': 'Bearer $token'})
         .build());
-    socket.connect();
+    _socket!.connect();
   }
 
   void sendOffer(String targetSocketId, dynamic sdp) =>
@@ -24,9 +28,9 @@ class SocketService {
   void endCall(String targetSocketId) =>
       socket.emit('call_end', {'targetSocketId': targetSocketId});
 
-  void on(String event, Function(dynamic) handler) => socket.on(event, handler);
+  void on(String event, Function(dynamic) handler) => _socket?.on(event, handler);
 
-  void off(String event) => socket.off(event);
+  void off(String event) => _socket?.off(event);
 
-  void disconnect() => socket.disconnect();
+  void disconnect() => _socket?.disconnect();
 }

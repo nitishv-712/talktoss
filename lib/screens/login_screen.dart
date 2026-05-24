@@ -12,11 +12,13 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
 
   Future<void> _googleSignIn() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     final user = await AuthService.signInWithGoogle();
+    if (!mounted) return;
     setState(() => _loading = false);
     // Auth state stream handles navigation automatically
-    if (user == null && mounted) {
+    if (user == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sign in failed. Please try again.')),
       );
