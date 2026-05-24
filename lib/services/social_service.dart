@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/env.dart';
 import 'auth_service.dart';
@@ -21,7 +22,7 @@ class SocialService {
         return jsonDecode(res.body) as List<dynamic>;
       }
     } catch (e) {
-      print('[SocialService] searchUsers error: $e');
+      debugPrint('[SocialService] searchUsers error: $e');
     }
     return [];
   }
@@ -36,7 +37,7 @@ class SocialService {
       );
       return res.statusCode == 200;
     } catch (e) {
-      print('[SocialService] sendFriendRequest error: $e');
+      debugPrint('[SocialService] sendFriendRequest error: $e');
     }
     return false;
   }
@@ -51,7 +52,7 @@ class SocialService {
       );
       return res.statusCode == 200;
     } catch (e) {
-      print('[SocialService] respondToFriendRequest error: $e');
+      debugPrint('[SocialService] respondToFriendRequest error: $e');
     }
     return false;
   }
@@ -64,7 +65,7 @@ class SocialService {
         return jsonDecode(res.body) as List<dynamic>;
       }
     } catch (e) {
-      print('[SocialService] getFriends error: $e');
+      debugPrint('[SocialService] getFriends error: $e');
     }
     return [];
   }
@@ -77,7 +78,7 @@ class SocialService {
         return jsonDecode(res.body) as List<dynamic>;
       }
     } catch (e) {
-      print('[SocialService] getNotifications error: $e');
+      debugPrint('[SocialService] getNotifications error: $e');
     }
     return [];
   }
@@ -87,7 +88,7 @@ class SocialService {
       final headers = await _getHeaders();
       await http.post(Uri.parse('${Env.serverUrl}/social/notifications/read'), headers: headers);
     } catch (e) {
-      print('[SocialService] markNotificationsRead error: $e');
+      debugPrint('[SocialService] markNotificationsRead error: $e');
     }
   }
 
@@ -99,7 +100,7 @@ class SocialService {
         return jsonDecode(res.body) as List<dynamic>;
       }
     } catch (e) {
-      print('[SocialService] getChatMessages error: $e');
+      debugPrint('[SocialService] getChatMessages error: $e');
     }
     return [];
   }

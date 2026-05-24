@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
-import '../services/auth_service.dart';
-import '../theme/app_theme.dart';
-import '../theme/theme_provider.dart';
+import '../../services/auth_service.dart';
+import '../../theme/app_theme.dart';
+import '../../theme/theme_provider.dart';
+import 'personal_info_screen.dart';
+import 'security_screen.dart';
+import 'help_center_screen.dart';
+import 'legal_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -128,6 +132,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         'Personal Information',
                         'Update your details',
                         trailing: Icon(Icons.chevron_right, color: cs.outline),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PersonalInfoScreen()),
+                        ),
                       ),
                       _tile(
                         context,
@@ -135,6 +143,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         'Security',
                         'Password and 2FA',
                         trailing: Icon(Icons.chevron_right, color: cs.outline),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SecurityScreen()),
+                        ),
                       ),
                     ]),
                     const SizedBox(height: 16),
@@ -157,9 +169,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         'Help Center',
                         'FAQs and documentation',
                         trailing: Icon(
-                          Icons.open_in_new,
+                          Icons.chevron_right,
                           color: cs.outline,
                           size: 18,
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
                         ),
                       ),
                       _tile(
@@ -168,6 +184,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         'Legal',
                         'Privacy Policy and Terms',
                         trailing: Icon(Icons.chevron_right, color: cs.outline),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const LegalScreen()),
+                        ),
                       ),
                     ]),
                     const SizedBox(height: 32),

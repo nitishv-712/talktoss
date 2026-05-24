@@ -4,7 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
-import 'screens/login_screen.dart';
+import 'screens/auth/login_screen.dart';
 import 'screens/main_shell.dart';
 import 'theme/theme_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -46,7 +46,9 @@ class _AuthGate extends StatelessWidget {
       stream: AuthService.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
         return snapshot.data != null ? const MainShell() : const LoginScreen();
       },

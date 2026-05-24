@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -28,7 +28,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    // Login screen always uses dark background for onboarding feel
     const bg = Color(0xFF0F0F0F);
     const card = Color(0xFF1E1E1E);
 
@@ -41,21 +40,45 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               const Spacer(flex: 2),
               Container(
-                width: 90, height: 90,
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
                   color: card,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: Colors.white10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cs.primary.withValues(alpha: 0.15),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
                 ),
-                child: Icon(Icons.cell_tower_rounded, size: 48, color: cs.primary),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset('assets/logo.png', fit: BoxFit.cover),
+                ),
               ),
               const SizedBox(height: 28),
-              const Text('TalkToss',
-                  style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              const Text(
+                'TalkToss',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
               const SizedBox(height: 10),
-              const Text('Talk to random people\naround the world',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white38, fontSize: 15, height: 1.5)),
+              const Text(
+                'Talk to random people\naround the world',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 15,
+                  height: 1.5,
+                ),
+              ),
               const Spacer(flex: 2),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -73,23 +96,38 @@ class _LoginScreenState extends State<LoginScreen> {
                   : GestureDetector(
                       onTap: _googleSignIn,
                       child: Container(
-                        width: double.infinity, height: 54,
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(14)),
+                        width: double.infinity,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.network('https://developers.google.com/identity/images/g-logo.png', height: 22),
+                            Image.network(
+                              'https://developers.google.com/identity/images/g-logo.png',
+                              height: 22,
+                            ),
                             const SizedBox(width: 12),
-                            const Text('Continue with Google',
-                                style: TextStyle(color: Color(0xFF1A1A1A), fontSize: 15, fontWeight: FontWeight.w600)),
+                            const Text(
+                              'Continue with Google',
+                              style: TextStyle(
+                                color: Color(0xFF1A1A1A),
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
               const SizedBox(height: 20),
-              const Text('By continuing, you agree to our Terms & Privacy Policy',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.white24, fontSize: 11)),
+              const Text(
+                'By continuing, you agree to our Terms & Privacy Policy',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white24, fontSize: 11),
+              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -111,7 +149,10 @@ class _LoginScreenState extends State<LoginScreen> {
           Icon(icon, size: 14, color: cs.primary),
           const SizedBox(width: 5),
           const Text('', style: TextStyle(color: Colors.white60, fontSize: 12)),
-          Text(label, style: const TextStyle(color: Colors.white60, fontSize: 12)),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white60, fontSize: 12),
+          ),
         ],
       ),
     );

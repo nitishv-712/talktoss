@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../config/env.dart';
 
 class AuthService {
-  static final _googleSignIn = kIsWeb 
+  static final _googleSignIn = kIsWeb
       ? GoogleSignIn(clientId: Env.googleClientId)
       : GoogleSignIn();
   static final _firebaseAuth = FirebaseAuth.instance;
@@ -26,7 +26,9 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      final userCredential = await _firebaseAuth.signInWithCredential(credential);
+      final userCredential = await _firebaseAuth.signInWithCredential(
+        credential,
+      );
       final user = userCredential.user;
       if (user == null) return null;
 

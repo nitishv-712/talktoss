@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../services/social_service.dart';
+import '../../services/social_service.dart';
 
 class SearchUsersScreen extends StatefulWidget {
   const SearchUsersScreen({super.key});
@@ -50,21 +50,24 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
       setState(() {
         _users[index]['relation'] = 'pending_sent';
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request sent!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Friend request sent!')));
     }
   }
 
   Future<void> _acceptRequest(String requestId, int index) async {
-    final success = await SocialService.respondToFriendRequest(requestId, 'accept');
+    final success = await SocialService.respondToFriendRequest(
+      requestId,
+      'accept',
+    );
     if (success && mounted) {
       setState(() {
         _users[index]['relation'] = 'friends';
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Friend request accepted!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Friend request accepted!')));
     }
   }
 
@@ -74,7 +77,10 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Find Friends', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Find Friends',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
       ),
       body: Padding(
@@ -91,7 +97,7 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
                   BoxShadow(
                     color: cs.primary.withValues(alpha: 0.04),
                     blurRadius: 8,
-                  )
+                  ),
                 ],
               ),
               child: TextField(
@@ -121,21 +127,24 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _users.isEmpty
-                      ? Center(
-                          child: Text(
-                            _searchController.text.isEmpty
-                                ? 'Type something to search'
-                                : 'No users found',
-                            style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 16),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _users.length,
-                          itemBuilder: (context, index) {
-                            final user = _users[index];
-                            return _buildUserCard(cs, user, index);
-                          },
+                  ? Center(
+                      child: Text(
+                        _searchController.text.isEmpty
+                            ? 'Type something to search'
+                            : 'No users found',
+                        style: TextStyle(
+                          color: cs.onSurface.withValues(alpha: 0.5),
+                          fontSize: 16,
                         ),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _users.length,
+                      itemBuilder: (context, index) {
+                        final user = _users[index];
+                        return _buildUserCard(cs, user, index);
+                      },
+                    ),
             ),
           ],
         ),
@@ -159,10 +168,7 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
-          BoxShadow(
-            color: cs.primary.withValues(alpha: 0.03),
-            blurRadius: 8,
-          )
+          BoxShadow(color: cs.primary.withValues(alpha: 0.03), blurRadius: 8),
         ],
       ),
       child: Row(
@@ -177,7 +183,11 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
                 child: avatar == null
                     ? Text(
                         initial.toUpperCase(),
-                        style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold, fontSize: 20),
+                        style: TextStyle(
+                          color: cs.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
                       )
                     : null,
               ),
@@ -205,12 +215,19 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
               children: [
                 Text(
                   name,
-                  style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: cs.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   email,
-                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6), fontSize: 12),
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.6),
+                    fontSize: 12,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -225,7 +242,12 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
     );
   }
 
-  Widget _buildActionButton(ColorScheme cs, dynamic user, String relation, int index) {
+  Widget _buildActionButton(
+    ColorScheme cs,
+    dynamic user,
+    String relation,
+    int index,
+  ) {
     if (relation == 'friends') {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -238,7 +260,14 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
           children: [
             Icon(Icons.check, color: cs.primary, size: 14),
             const SizedBox(width: 4),
-            Text('Friends', style: TextStyle(color: cs.primary, fontSize: 12, fontWeight: FontWeight.bold)),
+            Text(
+              'Friends',
+              style: TextStyle(
+                color: cs.primary,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       );
@@ -252,7 +281,11 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
         ),
         child: Text(
           'Pending',
-          style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6), fontSize: 12, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: cs.onSurface.withValues(alpha: 0.6),
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     } else if (relation == 'pending_received') {
@@ -264,9 +297,14 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
-        child: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        child: const Text(
+          'Accept',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
       );
     } else {
       // none
@@ -278,9 +316,14 @@ class _SearchUsersScreenState extends State<SearchUsersScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
-        child: const Text('Add', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        child: const Text(
+          'Add',
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+        ),
       );
     }
   }

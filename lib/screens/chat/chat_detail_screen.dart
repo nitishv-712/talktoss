@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../services/social_service.dart';
-import '../services/socket_service.dart';
+import '../../services/social_service.dart';
+import '../../services/socket_service.dart';
 
 class ChatDetailScreen extends StatefulWidget {
   final String friendId;
   final String name;
   final String? avatar;
   final bool isOnline;
-  
+
   const ChatDetailScreen({
     super.key,
     required this.friendId,
@@ -47,11 +47,13 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     // Only append if the message is from this friend
     if (data['sender'] == widget.friendId && mounted) {
       setState(() {
-        _messages.add(_Message(
-          text: data['text'] ?? '',
-          isMe: false,
-          time: _formatMsgTime(data['createdAt']),
-        ));
+        _messages.add(
+          _Message(
+            text: data['text'] ?? '',
+            isMe: false,
+            time: _formatMsgTime(data['createdAt']),
+          ),
+        );
       });
       _scrollToBottom();
     }
@@ -139,10 +141,19 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: cs.surfaceContainer,
-                  backgroundImage: widget.avatar != null ? NetworkImage(widget.avatar!) : null,
+                  backgroundImage: widget.avatar != null
+                      ? NetworkImage(widget.avatar!)
+                      : null,
                   child: widget.avatar == null
-                      ? Text(widget.name.isNotEmpty ? widget.name[0].toUpperCase() : '?',
-                          style: TextStyle(color: cs.primary, fontWeight: FontWeight.w600))
+                      ? Text(
+                          widget.name.isNotEmpty
+                              ? widget.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            color: cs.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        )
                       : null,
                 ),
                 if (widget.isOnline)
@@ -166,11 +177,24 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.name,
-                      style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w600),
-                      overflow: TextOverflow.ellipsis),
+                  Text(
+                    widget.name,
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   if (widget.isOnline)
-                    Text('Online', style: TextStyle(color: const Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.w500)),
+                    Text(
+                      'Online',
+                      style: TextStyle(
+                        color: const Color(0xFF10B981),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -184,7 +208,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       return Padding(
@@ -204,10 +231,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return Align(
       alignment: msg.isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment: msg.isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: msg.isMe
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           Container(
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               gradient: msg.isMe
@@ -224,21 +255,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 bottomLeft: Radius.circular(msg.isMe ? 16 : 4),
                 bottomRight: Radius.circular(msg.isMe ? 4 : 16),
               ),
-              border: msg.isMe ? null : Border.all(color: cs.outlineVariant.withValues(alpha: 0.3)),
+              border: msg.isMe
+                  ? null
+                  : Border.all(color: cs.outlineVariant.withValues(alpha: 0.3)),
               boxShadow: [
                 BoxShadow(
                   color: cs.primary.withValues(alpha: msg.isMe ? 0.2 : 0.05),
                   blurRadius: 8,
                   offset: msg.isMe ? const Offset(0, 4) : Offset.zero,
-                )
+                ),
               ],
             ),
-            child: Text(msg.text, style: TextStyle(color: msg.isMe ? Colors.white : cs.onSurface, fontSize: 14, height: 1.5)),
+            child: Text(
+              msg.text,
+              style: TextStyle(
+                color: msg.isMe ? Colors.white : cs.onSurface,
+                fontSize: 14,
+                height: 1.5,
+              ),
+            ),
           ),
           const SizedBox(height: 4),
           Padding(
-            padding: EdgeInsets.only(left: msg.isMe ? 0 : 4, right: msg.isMe ? 4 : 0),
-            child: Text(msg.time, style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 10)),
+            padding: EdgeInsets.only(
+              left: msg.isMe ? 0 : 4,
+              right: msg.isMe ? 4 : 0,
+            ),
+            child: Text(
+              msg.time,
+              style: TextStyle(
+                color: cs.onSurface.withValues(alpha: 0.5),
+                fontSize: 10,
+              ),
+            ),
           ),
         ],
       ),
@@ -249,7 +298,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return Container(
       decoration: BoxDecoration(
         color: cs.surface.withValues(alpha: 0.9),
-        border: Border(top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.2))),
+        border: Border(
+          top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.2)),
+        ),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: SafeArea(
@@ -257,17 +308,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           children: [
             Expanded(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: cs.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: cs.outlineVariant.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: TextField(
                   controller: _controller,
                   decoration: InputDecoration(
                     hintText: 'Type a message...',
-                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 14),
+                    hintStyle: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.4),
+                      fontSize: 14,
+                    ),
                     border: InputBorder.none,
                     isDense: true,
                     contentPadding: const EdgeInsets.symmetric(vertical: 8),
@@ -285,9 +344,17 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 height: 48,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(colors: [cs.primary, cs.secondary], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  gradient: LinearGradient(
+                    colors: [cs.primary, cs.secondary],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   boxShadow: [
-                    BoxShadow(color: cs.primary.withValues(alpha: 0.3), blurRadius: 12, spreadRadius: 1)
+                    BoxShadow(
+                      color: cs.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      spreadRadius: 1,
+                    ),
                   ],
                 ),
                 child: const Icon(Icons.send, color: Colors.white, size: 22),

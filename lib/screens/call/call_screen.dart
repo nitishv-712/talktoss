@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import '../services/socket_service.dart';
-import '../services/webrtc_service.dart';
+import '../../services/socket_service.dart';
+import '../../services/webrtc_service.dart';
 
 class CallScreen extends StatefulWidget {
   final String peerUid;

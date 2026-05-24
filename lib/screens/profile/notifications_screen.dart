@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/social_service.dart';
-import '../services/socket_service.dart';
+import '../../services/social_service.dart';
+import '../../services/socket_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -17,7 +17,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     _loadNotifications();
-    
+
     // Listen for real-time notification socket events
     SocketService().on('notification', _onNotificationReceived);
   }
@@ -54,8 +54,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
-  Future<void> _handleResponse(String requestId, String action, int index) async {
-    final success = await SocialService.respondToFriendRequest(requestId, action);
+  Future<void> _handleResponse(
+    String requestId,
+    String action,
+    int index,
+  ) async {
+    final success = await SocialService.respondToFriendRequest(
+      requestId,
+      action,
+    );
     if (success && mounted) {
       setState(() {
         if (action == 'accept') {
@@ -68,7 +75,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         }
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(action == 'accept' ? 'Friend request accepted!' : 'Friend request rejected.')),
+        SnackBar(
+          content: Text(
+            action == 'accept'
+                ? 'Friend request accepted!'
+                : 'Friend request rejected.',
+          ),
+        ),
       );
     }
   }
@@ -79,7 +92,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Notifications',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         actions: [
           IconButton(
@@ -91,30 +107,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _notifications.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.notifications_none, size: 64, color: cs.primary.withValues(alpha: 0.3)),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No notifications yet',
-                        style: TextStyle(color: cs.onSurface.withValues(alpha: 0.5), fontSize: 16),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.notifications_none,
+                    size: 64,
+                    color: cs.primary.withValues(alpha: 0.3),
                   ),
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadNotifications,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _notifications.length,
-                    itemBuilder: (context, index) {
-                      final item = _notifications[index];
-                      return _buildNotificationCard(cs, item, index);
-                    },
+                  const SizedBox(height: 16),
+                  Text(
+                    'No notifications yet',
+                    style: TextStyle(
+                      color: cs.onSurface.withValues(alpha: 0.5),
+                      fontSize: 16,
+                    ),
                   ),
-                ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadNotifications,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _notifications.length,
+                itemBuilder: (context, index) {
+                  final item = _notifications[index];
+                  return _buildNotificationCard(cs, item, index);
+                },
+              ),
+            ),
     );
   }
 
@@ -135,10 +158,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
         boxShadow: [
-          BoxShadow(
-            color: cs.primary.withValues(alpha: 0.03),
-            blurRadius: 8,
-          )
+          BoxShadow(color: cs.primary.withValues(alpha: 0.03), blurRadius: 8),
         ],
       ),
       child: Row(
@@ -152,7 +172,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: avatar == null
                 ? Text(
                     initial.toUpperCase(),
-                    style: TextStyle(color: cs.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                    style: TextStyle(
+                      color: cs.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
                   )
                 : null,
           ),
@@ -164,9 +188,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               children: [
                 RichText(
                   text: TextSpan(
-                    style: TextStyle(color: cs.onSurface, fontSize: 14, height: 1.4),
+                    style: TextStyle(
+                      color: cs.onSurface,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
                     children: [
-                      TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      TextSpan(
+                        text: name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       TextSpan(
                         text: type == 'friend_request'
                             ? ' sent you a friend request.'
@@ -178,36 +209,63 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const SizedBox(height: 4),
                 Text(
                   timeStr,
-                  style: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 11),
+                  style: TextStyle(
+                    color: cs.onSurface.withValues(alpha: 0.4),
+                    fontSize: 11,
+                  ),
                 ),
                 if (type == 'friend_request' && requestId != null) ...[
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       ElevatedButton(
-                        onPressed: () => _handleResponse(requestId, 'accept', index),
+                        onPressed: () =>
+                            _handleResponse(requestId, 'accept', index),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: cs.primary,
                           foregroundColor: cs.onPrimary,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                        child: const Text('Accept', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Accept',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 8),
                       OutlinedButton(
-                        onPressed: () => _handleResponse(requestId, 'reject', index),
+                        onPressed: () =>
+                            _handleResponse(requestId, 'reject', index),
                         style: OutlinedButton.styleFrom(
                           side: BorderSide(color: cs.outlineVariant),
                           foregroundColor: cs.onSurface.withValues(alpha: 0.7),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         ),
-                        child: const Text('Decline', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        child: const Text(
+                          'Decline',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),

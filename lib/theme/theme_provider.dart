@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_theme.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  AppThemeMode _mode = AppThemeMode.lightCosmic;
+  AppThemeMode _mode = AppThemeMode.lightBrand;
 
   AppThemeMode get mode => _mode;
   ThemeData get theme => AppTheme.themes[_mode]!;
