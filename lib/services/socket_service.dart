@@ -2,6 +2,10 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import '../config/env.dart';
 
 class SocketService {
+  static final SocketService _instance = SocketService._internal();
+  factory SocketService() => _instance;
+  SocketService._internal();
+
   io.Socket? _socket;
 
   io.Socket get socket => _socket!;
@@ -9,6 +13,8 @@ class SocketService {
   bool get isConnected => _socket != null && (_socket!.connected);
 
   void connect(String token) {
+    if (_socket != null && _socket!.connected) return;
+    
     _socket = io.io(Env.serverUrl, io.OptionBuilder()
         .setTransports(['websocket'])
         .setExtraHeaders({'Authorization': 'Bearer $token'})

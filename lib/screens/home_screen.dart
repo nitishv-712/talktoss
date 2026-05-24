@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     _orbController.dispose();
     _ringController.dispose();
-    _socketService.disconnect();
+    _socketService.off('match_found');
     super.dispose();
   }
 
@@ -141,25 +141,28 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Global Lounges',
-                            style: TextStyle(
-                              color: cs.onSurface,
-                              fontSize: 24,
-                              fontWeight: FontWeight.w600,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Global Lounges',
+                              style: TextStyle(
+                                color: cs.onSurface,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                          Text(
-                            'Active discussions happening right now',
-                            style: TextStyle(
-                              color: cs.onSurface.withValues(alpha: 0.6),
-                              fontSize: 14,
+                            Text(
+                              'Active discussions happening right now',
+                              style: TextStyle(
+                                color: cs.onSurface.withValues(alpha: 0.6),
+                                fontSize: 14,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       TextButton.icon(
                         onPressed: () {},
@@ -308,9 +311,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
         const SizedBox(height: 32),
         Center(
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
+          child: SizedBox(
+            width: 280,
+            height: 280,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
               AnimatedBuilder(
                 animation: _ringAnim,
                 builder: (_, a) => Container(
@@ -380,7 +386,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -435,48 +442,55 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        ...List.generate(
-                          3,
-                          (i) => Transform.translate(
-                            offset: Offset(i * -8.0, 0),
+                    SizedBox(
+                      height: 28,
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          ...List.generate(
+                            3,
+                            (i) => Positioned(
+                              left: i * 20.0,
+                              child: Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: [
+                                    cs.primary,
+                                    cs.secondary,
+                                    cs.primaryContainer,
+                                  ][i],
+                                  border: Border.all(color: cs.surface, width: 2),
+                                ),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: 3 * 20.0,
                             child: Container(
                               width: 28,
                               height: 28,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: [
-                                  cs.primary,
-                                  cs.secondary,
-                                  cs.primaryContainer,
-                                ][i],
+                                color: cs.surfaceContainer,
                                 border: Border.all(color: cs.surface, width: 2),
                               ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: cs.surfaceContainer,
-                            border: Border.all(color: cs.surface, width: 2),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '+42',
-                              style: TextStyle(
-                                fontSize: 8,
-                                fontWeight: FontWeight.bold,
-                                color: cs.onSurface,
+                              child: Center(
+                                child: Text(
+                                  '+42',
+                                  style: TextStyle(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                    color: cs.onSurface,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 4 * 20.0 + 28),
+                        ],
+                      ),
                     ),
                     Row(
                       children: [

@@ -9,10 +9,12 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 const User = require('./models/User');
+const Message = require('./models/Message');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
+app.set('io', io);
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.set('trust proxy', 1);
@@ -23,6 +25,7 @@ app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }));
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use('/auth', require('./routes/auth'));
 app.use('/report', require('./routes/report'));
+app.use('/social', require('./routes/social'));
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
@@ -144,6 +147,27 @@ io.on('connection', async (socket) => {
   // ── call_end ────────────────────────────────────────────────────────────────
   socket.on('call_end', ({ targetSocketId }) => {
     io.to(targetSocketId).emit('call_end');
+  });
+
+  // ── send_message ────────────────────────────────────────────────────────────
+  socket.on('send_message', async ({ receiverId, text }) => {
+    try {
+      const msg = await Message.create({
+        sender: socket.userId,
+        receiver: receiverId,
+        text
+      });
+
+      // Find if receiver is online
+      const receiver = await User.findById(receiverId);
+      if (receiver && receiver.socketId) {
+        io.to(receiver.socketId).emit('receive_message', msg);
+      }
+      
+      socket.emit('message_sent', msg);
+    } catch (err) {
+      console.error('[socket send_message]', err);
+    }
   });
 
   // ── disconnect ──────────────────────────────────────────────────────────────

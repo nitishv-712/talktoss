@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/auth_service.dart';
+import '../services/socket_service.dart';
+import '../services/social_service.dart';
 import 'home_screen.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
+import 'notifications_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -15,6 +18,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
   final User? _user = AuthService.currentUser;
+  int _unreadCount = 0;
 
   final _screens = const [
     HomeScreen(),
@@ -22,6 +26,52 @@ class _MainShellState extends State<MainShell> {
     _PlaceholderScreen(icon: Icons.explore_outlined, label: 'Explore'),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _initSocket();
+    _fetchUnreadCount();
+  }
+
+  @override
+  void dispose() {
+    SocketService().off('notification');
+    super.dispose();
+  }
+
+  void _onNotificationReceived(dynamic data) {
+    if (mounted) {
+      setState(() {
+        _unreadCount++;
+      });
+    }
+  }
+
+  Future<void> _initSocket() async {
+    final token = await AuthService.getToken();
+    if (token != null) {
+      SocketService().connect(token);
+      SocketService().on('notification', _onNotificationReceived);
+    }
+  }
+
+  Future<void> _fetchUnreadCount() async {
+    final list = await SocialService.getNotifications();
+    if (mounted) {
+      setState(() {
+        _unreadCount = list.where((n) => n['read'] == false).length;
+      });
+    }
+  }
+
+  void _openNotifications() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+    _fetchUnreadCount();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +104,27 @@ class _MainShellState extends State<MainShell> {
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.notifications_outlined, color: cs.primary),
-            onPressed: () {},
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: Icon(Icons.notifications_outlined, color: cs.primary),
+                onPressed: _openNotifications,
+              ),
+              if (_unreadCount > 0)
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(width: 8),
         ],

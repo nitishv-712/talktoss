@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
+import '../services/social_service.dart';
+import '../services/socket_service.dart';
 
 class ChatDetailScreen extends StatefulWidget {
+  final String friendId;
   final String name;
+  final String? avatar;
   final bool isOnline;
-  const ChatDetailScreen({super.key, this.name = 'Sasha', this.isOnline = true});
+  
+  const ChatDetailScreen({
+    super.key,
+    required this.friendId,
+    required this.name,
+    this.avatar,
+    this.isOnline = true,
+  });
 
   @override
   State<ChatDetailScreen> createState() => _ChatDetailScreenState();
@@ -12,31 +23,85 @@ class ChatDetailScreen extends StatefulWidget {
 class _ChatDetailScreenState extends State<ChatDetailScreen> {
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
+  List<_Message> _messages = [];
+  bool _loading = true;
 
-  final _messages = <_Message>[
-    _Message(text: "Hey! Are we still on for the cosmic design review later today? 🌌", isMe: false, time: '14:02'),
-    _Message(text: "Absolutely! I've been refining the translucent layers for the Glassmorphism cards. Think you'll like the progress.", isMe: true, time: '14:05'),
-    _Message(text: "Perfect. Can you also bring those spatial rhythm docs? I want to make sure the fluid grid is mathematically aligned.", isMe: false, time: '14:08'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadMessages();
+
+    // Listen for incoming messages in real-time
+    SocketService().on('receive_message', _onMessageReceived);
+  }
 
   @override
   void dispose() {
+    SocketService().off('receive_message');
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
+  void _onMessageReceived(dynamic data) {
+    // Only append if the message is from this friend
+    if (data['sender'] == widget.friendId && mounted) {
+      setState(() {
+        _messages.add(_Message(
+          text: data['text'] ?? '',
+          isMe: false,
+          time: _formatMsgTime(data['createdAt']),
+        ));
+      });
+      _scrollToBottom();
+    }
+  }
+
+  Future<void> _loadMessages() async {
+    setState(() => _loading = true);
+    final history = await SocialService.getChatMessages(widget.friendId);
+    if (mounted) {
+      setState(() {
+        _messages = history.map((m) {
+          final sender = m['sender'];
+          final isMe = sender != widget.friendId;
+          return _Message(
+            text: m['text'] ?? '',
+            isMe: isMe,
+            time: _formatMsgTime(m['createdAt']),
+          );
+        }).toList();
+        _loading = false;
+      });
+      _scrollToBottom();
+    }
+  }
+
   void _sendMessage() {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
+
+    // Emit event via Socket.IO
+    SocketService().socket.emit('send_message', {
+      'receiverId': widget.friendId,
+      'text': text,
+    });
+
     setState(() {
       _messages.add(_Message(text: text, isMe: true, time: _timeNow()));
       _controller.clear();
     });
+    _scrollToBottom();
+  }
+
+  void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(_scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -44,6 +109,16 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   String _timeNow() {
     final now = DateTime.now();
     return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+  }
+
+  String _formatMsgTime(dynamic dateStr) {
+    if (dateStr == null) return _timeNow();
+    try {
+      final date = DateTime.parse(dateStr.toString()).toLocal();
+      return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return _timeNow();
+    }
   }
 
   @override
@@ -64,67 +139,60 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: cs.surfaceContainer,
-                  child: Text(widget.name[0], style: TextStyle(color: cs.primary, fontWeight: FontWeight.w600)),
+                  backgroundImage: widget.avatar != null ? NetworkImage(widget.avatar!) : null,
+                  child: widget.avatar == null
+                      ? Text(widget.name.isNotEmpty ? widget.name[0].toUpperCase() : '?',
+                          style: TextStyle(color: cs.primary, fontWeight: FontWeight.w600))
+                      : null,
                 ),
                 if (widget.isOnline)
                   Positioned(
-                    bottom: 0, right: 0,
+                    bottom: 0,
+                    right: 0,
                     child: Container(
-                      width: 10, height: 10,
-                      decoration: BoxDecoration(color: cs.secondary, shape: BoxShape.circle,
-                          border: Border.all(color: cs.surface, width: 1.5)),
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: cs.surface, width: 1.5),
+                      ),
                     ),
                   ),
               ],
             ),
             const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.name, style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w600)),
-                if (widget.isOnline)
-                  Text('Online', style: TextStyle(color: cs.secondary, fontSize: 11, fontWeight: FontWeight.w500)),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.name,
+                      style: TextStyle(color: cs.onSurface, fontSize: 16, fontWeight: FontWeight.w600),
+                      overflow: TextOverflow.ellipsis),
+                  if (widget.isOnline)
+                    Text('Online', style: TextStyle(color: const Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.w500)),
+                ],
+              ),
             ),
           ],
         ),
-        actions: [
-          Container(
-            margin: const EdgeInsets.symmetric(vertical: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: BoxDecoration(color: cs.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(999)),
-            child: Row(
-              children: [
-                Icon(Icons.call, color: cs.primary, size: 16),
-                const SizedBox(width: 4),
-                Text('On Call', style: TextStyle(color: cs.primary, fontSize: 12, fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-          IconButton(icon: Icon(Icons.more_vert, color: cs.onSurface.withValues(alpha: 0.6)), onPressed: () {}),
-        ],
       ),
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              children: [
-                Center(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(color: cs.surfaceContainer, borderRadius: BorderRadius.circular(999)),
-                    child: Text('TODAY', style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6), fontSize: 10, fontWeight: FontWeight.w500, letterSpacing: 1)),
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    itemCount: _messages.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _buildMessage(cs, _messages[index]),
+                      );
+                    },
                   ),
-                ),
-                const SizedBox(height: 16),
-                ..._messages.map((m) => Padding(padding: const EdgeInsets.only(bottom: 16), child: _buildMessage(cs, m))),
-                _buildAiBridge(cs),
-                const SizedBox(height: 16),
-                _buildTypingIndicator(cs),
-              ],
-            ),
           ),
           _buildInput(cs),
         ],
@@ -142,15 +210,28 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              gradient: msg.isMe ? LinearGradient(colors: [cs.primary, cs.secondary], begin: Alignment.topLeft, end: Alignment.bottomRight) : null,
+              gradient: msg.isMe
+                  ? LinearGradient(
+                      colors: [cs.primary, cs.secondary],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
               color: msg.isMe ? null : cs.surfaceContainerLow,
               borderRadius: BorderRadius.only(
-                topLeft: const Radius.circular(16), topRight: const Radius.circular(16),
+                topLeft: const Radius.circular(16),
+                topRight: const Radius.circular(16),
                 bottomLeft: Radius.circular(msg.isMe ? 16 : 4),
                 bottomRight: Radius.circular(msg.isMe ? 4 : 16),
               ),
               border: msg.isMe ? null : Border.all(color: cs.outlineVariant.withValues(alpha: 0.3)),
-              boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: msg.isMe ? 0.2 : 0.05), blurRadius: 8, offset: msg.isMe ? const Offset(0, 4) : Offset.zero)],
+              boxShadow: [
+                BoxShadow(
+                  color: cs.primary.withValues(alpha: msg.isMe ? 0.2 : 0.05),
+                  blurRadius: 8,
+                  offset: msg.isMe ? const Offset(0, 4) : Offset.zero,
+                )
+              ],
             ),
             child: Text(msg.text, style: TextStyle(color: msg.isMe ? Colors.white : cs.onSurface, fontSize: 14, height: 1.5)),
           ),
@@ -164,63 +245,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     );
   }
 
-  Widget _buildAiBridge(ColorScheme cs) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainer.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: cs.primary.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Icon(Icons.auto_awesome, color: cs.primary, size: 18),
-            const SizedBox(width: 6),
-            Text('LIVE AI BRIDGE', style: TextStyle(color: cs.primary, fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 1.5)),
-          ]),
-          const SizedBox(height: 10),
-          Text('"Sasha is looking for the updated UI specs for the \'Cosmic Pulse\' theme. Mention the new 8px spatial rhythm."',
-              style: TextStyle(color: cs.onSurface.withValues(alpha: 0.6), fontSize: 12, fontStyle: FontStyle.italic, height: 1.5)),
-          const SizedBox(height: 10),
-          Wrap(spacing: 8, runSpacing: 8, children: [
-            _aiBridgeChip(cs, '"I\'ll bring the 8px grid specs!"'),
-            _aiBridgeChip(cs, '"Send spatial rhythm docs"'),
-          ]),
-        ],
-      ),
-    );
-  }
-
-  Widget _aiBridgeChip(ColorScheme cs, String label) {
-    return GestureDetector(
-      onTap: () => setState(() => _controller.text = label.replaceAll('"', '')),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(color: cs.surface, borderRadius: BorderRadius.circular(8), border: Border.all(color: cs.outlineVariant)),
-        child: Text(label, style: TextStyle(color: cs.primary, fontSize: 11, fontWeight: FontWeight.w500)),
-      ),
-    );
-  }
-
-  Widget _buildTypingIndicator(ColorScheme cs) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Opacity(
-        opacity: 0.5,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(3, (i) => Container(
-            width: 6, height: 6,
-            margin: const EdgeInsets.only(right: 3),
-            decoration: BoxDecoration(shape: BoxShape.circle, color: cs.primary),
-          )),
-        ),
-      ),
-    );
-  }
-
   Widget _buildInput(ColorScheme cs) {
     return Container(
       decoration: BoxDecoration(
@@ -228,76 +252,49 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         border: Border(top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.2))),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              IconButton(
-                icon: Icon(Icons.add_circle_outline, color: cs.onSurface.withValues(alpha: 0.6)),
-                onPressed: () {},
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: cs.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.2)),
+                ),
+                child: TextField(
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    hintText: 'Type a message...',
+                    hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 14),
+                    border: InputBorder.none,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 8),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          decoration: InputDecoration(
-                            hintText: 'Type a message...',
-                            hintStyle: TextStyle(color: cs.onSurface.withValues(alpha: 0.4), fontSize: 14),
-                            border: InputBorder.none, isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                          ),
-                          style: TextStyle(color: cs.onSurface, fontSize: 14),
-                          onSubmitted: (_) => _sendMessage(),
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.sentiment_satisfied_outlined, color: cs.onSurface.withValues(alpha: 0.5), size: 20),
-                        onPressed: () {},
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                      ),
-                    ],
-                  ),
+                  style: TextStyle(color: cs.onSurface, fontSize: 14),
+                  onSubmitted: (_) => _sendMessage(),
                 ),
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _sendMessage,
-                child: Container(
-                  width: 48, height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(colors: [cs.primary, cs.secondary], begin: Alignment.topLeft, end: Alignment.bottomRight),
-                    boxShadow: [BoxShadow(color: cs.primary.withValues(alpha: 0.3), blurRadius: 12, spreadRadius: 1)],
-                  ),
-                  child: const Icon(Icons.send, color: Colors.white, size: 22),
+            ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: _sendMessage,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(colors: [cs.primary, cs.secondary], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  boxShadow: [
+                    BoxShadow(color: cs.primary.withValues(alpha: 0.3), blurRadius: 12, spreadRadius: 1)
+                  ],
                 ),
+                child: const Icon(Icons.send, color: Colors.white, size: 22),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [Icons.image_outlined, Icons.mic_none, Icons.location_on_outlined, Icons.description_outlined]
-                .map((icon) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Icon(icon, color: cs.onSurface.withValues(alpha: 0.5), size: 24),
-                    ))
-                .toList(),
-          ),
-        ],
+            ),
+          ],
+        ),
       ),
     );
   }
