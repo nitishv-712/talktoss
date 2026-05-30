@@ -10,6 +10,7 @@ const userSchema = new mongoose.Schema({
   avatar: { type: String },
   status: { type: String, default: 'active' },
   socketId: { type: String, default: null },
+  fcmToken: { type: String, default: null },
   isOnline: { type: Boolean, default: false },
   friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   createdAt: { type: Date, default: Date.now }

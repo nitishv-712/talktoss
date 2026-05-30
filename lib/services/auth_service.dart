@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/env.dart';
+import 'notification_service.dart';
 
 class AuthService {
   static final _googleSignIn = kIsWeb
@@ -34,10 +35,16 @@ class AuthService {
 
       // Sync with backend
       final idToken = await user.getIdToken();
+      final fcmToken = await NotificationService.getToken();
+
       final res = await http.post(
         Uri.parse('${Env.serverUrl}/auth/google'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'idToken': idToken}),
+        body: jsonEncode({
+          'idToken': idToken,
+          // ignore: use_null_aware_elements
+          if (fcmToken != null) 'fcmToken': fcmToken,
+        }),
       );
 
       if (res.statusCode == 200) {
@@ -56,6 +63,24 @@ class AuthService {
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('jwt_token');
+  }
+
+  static Future<void> updateFcmToken(String fcmToken) async {
+    final token = await getToken();
+    if (token == null) return;
+
+    try {
+      await http.post(
+        Uri.parse('${Env.serverUrl}/auth/fcm-token'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'fcmToken': fcmToken}),
+      );
+    } catch (e) {
+      debugPrint('[AuthService] error updating FCM token: $e');
+    }
   }
 
   static Future<void> logout() async {

@@ -7,6 +7,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { sendPushNotification } = require('./utils/notifications');
 
 const User = require('./models/User');
 const Message = require('./models/Message');
@@ -160,10 +161,20 @@ io.on('connection', async (socket) => {
 
       // Find if receiver is online
       const receiver = await User.findById(receiverId);
-      if (receiver && receiver.socketId) {
+      if (receiver && receiver.socketId && receiver.isOnline) {
         io.to(receiver.socketId).emit('receive_message', msg);
+      } else if (receiver && receiver.fcmToken) {
+        // Send push notification if offline
+        const senderUser = await User.findById(socket.userId);
+        const senderName = senderUser ? senderUser.name : 'Someone';
+        await sendPushNotification(
+          receiver.fcmToken,
+          `New message from ${senderName}`,
+          text,
+          { type: 'message', messageId: msg._id.toString(), senderId: socket.userId }
+        );
       }
-      
+
       socket.emit('message_sent', msg);
     } catch (err) {
       console.error('[socket send_message]', err);
