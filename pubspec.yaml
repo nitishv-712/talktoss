@@ -41,6 +41,7 @@ dependencies:
   firebase_auth: ^6.5.0
   provider: ^6.1.2
   firebase_messaging: ^16.2.2
+  in_app_update: ^4.2.5
 
 dev_dependencies:
   flutter_test:

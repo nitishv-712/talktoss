@@ -10,6 +10,7 @@ import 'theme/theme_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'services/notification_service.dart';
+import 'services/update_service.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -47,8 +48,20 @@ class TalkTossApp extends StatelessWidget {
   }
 }
 
-class _AuthGate extends StatelessWidget {
+class _AuthGate extends StatefulWidget {
   const _AuthGate();
+
+  @override
+  State<_AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<_AuthGate> {
+  @override
+  void initState() {
+    super.initState();
+    // Check for in-app updates when the app launches
+    UpdateService.checkForUpdates();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,3 +78,4 @@ class _AuthGate extends StatelessWidget {
     );
   }
 }
+
